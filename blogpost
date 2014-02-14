@@ -1,0 +1,80 @@
+#!/bin/sh
+
+while getopts ":t:c:a:h" opt; do
+	case "$opt" in
+		t)
+			posttitle=$OPTARG
+			tflag=true
+			;;
+		c)
+			postcategory=$OPTARG
+			;;
+		a)
+			postauthor=$OPTARG
+			;;
+		h)
+			helpflag=true
+			;;
+		/?)
+			printf "Invalid option $OPTARG, use -h for help\n"
+			exit 1
+			;;
+		:)
+			printf "Option $OPTARG requires an argument, use -h for help\n"
+			exit 1
+			;;
+	esac
+done
+
+if [ "$helpflag" ]; then
+	printf "Usage: blogpost [options]\n\n"
+	printf "Options:\n"
+	printf " -t <post title>\tRequired\tTitle of post enclosed in quotes\n"
+	printf " -c <post category>\t\t\tCategory of post\n"
+	printf " -a <post author>\t\t\tAuthor of post\n"
+	printf " -h\t\t\t\t\tThis message\n"
+	exit 0
+fi
+
+
+if [ ! "$tflag" ]; then
+	printf " -t option is required, use -h for help\n"
+	exit 1
+fi
+
+if [ ! "$postauthor" ]; then
+	postauthor="Stephen Cott"
+fi
+
+blogdir=/home/stephen/stephencott.com
+year=$(date +%Y)
+month=$(date +%b)
+monthnum=$(date +%m)
+day=$(date +%d)
+
+currpostdir="$blogdir/$year/$month"
+titlenospace="$(echo "$posttitle" | sed "s/ /-/g")"
+currpost="$currpostdir/$year-$monthnum-$day-$titlenospace.markdown"
+
+if [ ! -d "$currpostdir" ]; then
+	mkdir -p "$currpostdir"
+fi
+
+
+
+if [ -s "$currpost" ]; then
+	printf "Post already exists\n"
+	exit 1
+fi
+
+echo "Title: $posttitle" >> "$currpost"
+echo "Date: $year-$monthnum-$day $(date +%H:%M)" >> "$currpost"
+echo "Author: $postauthor" >> "$currpost"
+echo "Category: $postcategory" >> "$currpost"
+echo "Tags: " >> "$currpost"
+echo "Slug: $titlenospace" >> "$currpost"
+echo ""
+echo ""
+echo ""
+
+vi "$currpost"
